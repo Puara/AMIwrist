@@ -17,6 +17,9 @@ class Instrument {
         std::deque<float> gyroXArray; // store last values
         std::deque<float> gyroYArray;
         std::deque<float> gyroZArray;
+        std::deque<float> acclXArray; // store last values
+        std::deque<float> acclYArray;
+        std::deque<float> acclZArray;
         int arraycounter = 0;
         const int leakyShakeFreq = 10;
         unsigned long leakyShakeTimerX;
@@ -34,7 +37,8 @@ class Instrument {
         float maxGyroValue = 1000;
     public:
         float leakyIntegrator (float reading, float old_value, float leak, int frequency, unsigned long& timer);
-        void updateInstrumentIMU (float gyroX, float gyroY, float gyroZ);
+        void updateShakeIMU (float gyroX, float gyroY, float gyroZ);
+        void updateJabIMU (float accelX, float accelY, float accelZ);
         float getShakeX();
         float getShakeY();
         float getShakeZ();

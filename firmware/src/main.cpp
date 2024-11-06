@@ -405,7 +405,8 @@ void loop() {
       //m5imu.gyroZrad = m5imu.gyroZ * pi / 180;
 
       // Get High-level descriptors (instrument data) - jab and shake for now
-      instrument.updateInstrumentIMU(m5imu.gyroX, m5imu.gyroY, m5imu.gyroZ);
+      instrument.updateShakeIMU(m5imu.gyroX, m5imu.gyroY, m5imu.gyroZ);
+      instrument.updateJabIMU(m5imu.accX, m5imu.accY, m5imu.accZ);
     }
     
   // prepare MIDI data if needed

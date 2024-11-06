@@ -4,7 +4,7 @@
 
 #include "instrument.h"
 
-void Instrument::updateInstrumentIMU (float gyroX, float gyroY, float gyroZ) {
+void Instrument::updateShakeIMU (float gyroX, float gyroY, float gyroZ) {
 
     Instrument::gyroXArray.push_back(gyroX);
     Instrument::gyroYArray.push_back(gyroY);
@@ -51,6 +51,25 @@ void Instrument::updateInstrumentIMU (float gyroX, float gyroY, float gyroZ) {
             Instrument::shakeZ = 0;
         }
     }
+}
+
+void Instrument::updateJabIMU (float accelX, float accelY, float accelZ) {
+
+    Instrument::acclXArray.push_back(accelX);
+    Instrument::acclYArray.push_back(accelY);
+    Instrument::acclZArray.push_back(accelZ);
+    if(Instrument::acclXArray.size() > Instrument::queueAmount) {
+        Instrument::acclXArray.pop_front();
+        Instrument::acclYArray.pop_front();
+        Instrument::acclZArray.pop_front();
+    }
+
+    std::deque<float>::iterator minX = std::min_element(Instrument::acclXArray.begin(), Instrument::acclXArray.end());
+    std::deque<float>::iterator maxX = std::max_element(Instrument::acclXArray.begin(), Instrument::acclXArray.end());
+    std::deque<float>::iterator minY = std::min_element(Instrument::acclYArray.begin(), Instrument::acclYArray.end());
+    std::deque<float>::iterator maxY = std::max_element(Instrument::acclYArray.begin(), Instrument::acclYArray.end());
+    std::deque<float>::iterator minZ = std::min_element(Instrument::acclZArray.begin(), Instrument::acclZArray.end());
+    std::deque<float>::iterator maxZ = std::max_element(Instrument::acclZArray.begin(), Instrument::acclZArray.end());
 
     // Instrument jab
     if (*maxX-*minX > Instrument::jabThreshold) {
