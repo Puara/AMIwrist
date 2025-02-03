@@ -1,17 +1,13 @@
 
-// GuitarAMI M5StickC - Main file
-// Edu Meneses
-// IDMIL - McGill University (2022)
-
-// Info on the M5StickC: 
-//    https://shop.m5stack.com/products/stick-c
-//    https://github.com/m5stack/M5StickC
-
-
-/*
-OBS: There's an error with the ESP32 inet.h file. The file requires manual fixing. Check the issue at 
-https://github.com/mathiasbredholt/libmapper-arduino/issues/3 
-*/
+/* GuitarAMI M5StickC - Main file
+ * Edu Meneses
+ * IDMIL - McGill University (2022)
+ * Société des Arts Technologiques (SAT) - 2025 
+ *
+ * Info on the M5StickC: 
+ *    https://shop.m5stack.com/products/stick-c
+ *    https://github.com/m5stack/M5StickC
+ */
 
 
 //
@@ -20,7 +16,7 @@ https://github.com/mathiasbredholt/libmapper-arduino/issues/3
 // ╺┻┛┗━╸╹  ┗━┛
 //
 
-const unsigned int firmware_version = 220322;
+const unsigned int firmware_version = 250131;
 
 // Turn everything related to MIDI off
 #define DISABLE_MIDI
