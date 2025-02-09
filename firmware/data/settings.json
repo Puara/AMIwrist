@@ -1,0 +1,8 @@
+{
+    "settings": [
+        {
+            "name": "lcdDelay",
+            "value": 3000
+        }
+    ]
+}

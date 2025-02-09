@@ -6,8 +6,8 @@
 </head>
 
 <body>
-    <p><a href="/">Config</a> &nbsp;&nbsp; <a href="/scan">Scan</a> &nbsp;&nbsp; <a href="/update">Update</a> &nbsp;&nbsp; <a href="/factory">Factory Settings</a>
-        
+    <p><a href="/">Config</a> &nbsp;&nbsp; <a href="/scan.html">Scan</a> &nbsp;&nbsp; <a href="/settings.html">Settings</a>
+
     <h1>%DEVICENAME%<h1>
             <p>%STATUS%</p>
             <h2>Settings:</h2>
@@ -34,7 +34,16 @@
                     </div>
 
                     <div class="row">
-                        <input type="submit" onclick="alert('Sending settings to module')" value="Save">
+                        <div class="col-25">
+                            <label for="firmware">Touch Sensitivity</label>
+                        </div>
+                        <div class="col-75">
+                            <input type="text" id="touch" name="touch" value="%TOUCH%">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <input type="submit" onclick="alert('Sending settings to GuitarAMI module')" value="Save">
                     </div>
                 </form>
 
