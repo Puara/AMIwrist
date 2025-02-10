@@ -13,6 +13,7 @@
 #include "puara_device.hpp"
 #include <iostream>
 #include <M5Unified.h>
+#include <puara/gestures.h>
 
 Puara puara;
 
