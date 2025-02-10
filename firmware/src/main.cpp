@@ -13,14 +13,11 @@
 #include "puara_device.hpp"
 #include <iostream>
 #include <M5Unified.h>
-#include <tcpip_adapter.h>
 
 Puara puara;
 
 byte led_pin = 10;
 bool lcd_on = false;
-
-tcpip_adapter_ip_info_t ipInfo;
 
 #include <WiFiUdp.h>
 #include <OSCMessage.h>
@@ -76,8 +73,6 @@ void setup() {
     "Booting System...\n\n",puara.get_dmi_name(),puara.get_version());
 
     M5.Lcd.printf(puara.get_dmi_name().c_str());
-
-    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
 
     std::cout << "\n" 
     << "Custom AMIWrist settings (data/settings.json):\n" 
