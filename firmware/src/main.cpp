@@ -219,8 +219,8 @@ void loop() {
         M5.Lcd.setCursor(0,0);
         M5.Lcd.setTextSize(2);
         M5.Lcd.printf("Entering\nsetup\nmode...");
-        // PuaraAPI::DeviceConfiguration{}.persistentAP = true;
-        // puara.write_config_json();
+        puara.set_persistentAP(true);
+        puara.write_config_json();
         PuaraAPI::Device{}.reboot_with_delay();
     }
 
