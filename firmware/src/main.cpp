@@ -8,14 +8,19 @@
  *    https://github.com/m5stack/M5StickC
  */
 
-#include "Arduino.h"
-#include "puara.h"
-#include "puara_device.hpp"
+#include <Arduino.h>
+#include <puara.h>
+#include <puara_device.hpp> // have to include this to use reboot_with_delay()
 #include <iostream>
 #include <M5Unified.h>
 #include <puara/gestures.h>
 
+
 Puara puara;
+puara_gestures::Jab3D jab;
+puara_gestures::Shake3D shake;
+IMU_Orientation imu_orientation;
+//puara_gestures::Button button;
 
 byte led_pin = 10;
 bool lcd_on = false;
@@ -105,6 +110,14 @@ void setup() {
     
 }
 
+OSCMessage msgAccl(("/" + puara.dmi_name() + "/accl").c_str()); 
+OSCMessage msgGyro(("/" + puara.dmi_name() + "/gyro").c_str()); 
+OSCMessage msgJab(("/" + puara.dmi_name() + "/jab").c_str()); 
+OSCMessage msgShake(("/" + puara.dmi_name() + "/shake").c_str()); 
+OSCMessage msgYpr(("/" + puara.dmi_name() + "/ypr").c_str()); 
+OSCMessage msgButton(("/" + puara.dmi_name() + "/button").c_str()); 
+
+
 //////////
 // LOOP //
 //////////
@@ -119,84 +132,101 @@ void loop() {
         M5.Power.getBatteryLevel();
         // printFloatArray(data.value,6); 
 
-            OSCMessage msg1(("/" + puara.dmi_name() + "/imu").c_str()); 
-            msg1.add(data.accel.x); msg1.add(data.accel.y); msg1.add(data.accel.z);
-            msg1.add(data.gyro.x); msg1.add(data.gyro.y); msg1.add(data.gyro.z);
-            if (puara.IP1_ready()) {
-                Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
-                msg1.send(Udp);
-                Udp.endPacket();
-            }
-            if (puara.IP2_ready()) {
-                Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
-                msg1.send(Udp);
-                Udp.endPacket();
-            }
-            msg1.empty();
-            //std::cout << "Message send to " << puara.IP1() << std::endl;
+        msgAccl.add(data.accel.x); msgAccl.add(data.accel.y); msgAccl.add(data.accel.z);
+        if (puara.IP1_ready()) {
+            Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
+            msgAccl.send(Udp);
+            Udp.endPacket();
+        }
+        if (puara.IP2_ready()) {
+            Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
+            msgAccl.send(Udp);
+            Udp.endPacket();
+        }
+        msgAccl.empty();
 
-        // if (puara.IP1_ready()) { // set namespace and send OSC message for address 1
-        //     OSCMessage msg1(("/" + puara.dmi_name() + "/imu").c_str()); 
-        //     msg1.add(data.accel.x); msg1.add(data.accel.y); msg1.add(data.accel.z);
-        //     msg1.add(data.gyro.x); msg1.add(data.gyro.y); msg1.add(data.gyro.z);
-        //     Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
-        //     msg1.send(Udp);
-        //     Udp.endPacket();
-        //     msg1.empty();
-        //     //std::cout << "Message send to " << puara.IP1() << std::endl;
-        // }
-        // if (puara.IP2_ready()) { // set namespace and send OSC message for address 2
-        //     OSCMessage msg2(("/" + puara.dmi_name() + "/imu").c_str()); 
-        //     msg2.add(data.accel.x); msg2.add(data.accel.y); msg2.add(data.accel.z);
-        //     msg2.add(data.gyro.x); msg2.add(data.gyro.y); msg2.add(data.gyro.z);
-        //     Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
-        //     msg2.send(Udp);
-        //     Udp.endPacket();
-        //     msg2.empty();
-        //     //std::cout << "Message send to " << puara.IP2() << std::endl;
-        // }
+        msgGyro.add(data.gyro.x); msgGyro.add(data.gyro.y); msgGyro.add(data.gyro.z);
+        if (puara.IP1_ready()) {
+            Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
+            msgGyro.send(Udp);
+            Udp.endPacket();
+        }
+        if (puara.IP2_ready()) {
+            Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
+            msgGyro.send(Udp);
+            Udp.endPacket();
+        }
+        msgGyro.empty();
+
+        jab.update(data.accel.x, data.accel.y, data.accel.z);
+        shake.update(data.accel.x, data.accel.y, data.accel.z);
+        imu_orientation.setAccelerometerValues(data.accel.x, data.accel.y, data.accel.z);
+        imu_orientation.setGyroscopeDegreeValues(data.gyro.x, data.gyro.y, data.gyro.z, 10.);
+        imu_orientation.update();
+
+        msgJab.add(jab.x.current_value());
+        msgJab.add(jab.y.current_value());
+        msgJab.add(jab.z.current_value());
+        if (puara.IP1_ready()) {
+            Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
+            msgJab.send(Udp);
+            Udp.endPacket();
+        }
+        if (puara.IP2_ready()) {
+            Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
+            msgJab.send(Udp);
+            Udp.endPacket();
+        }
+        msgJab.empty();
+
+        msgShake.add(shake.x.current_value());
+        msgShake.add(shake.y.current_value());
+        msgShake.add(shake.z.current_value());
+        if (puara.IP1_ready()) {
+            Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
+            msgShake.send(Udp);
+            Udp.endPacket();
+        }
+        if (puara.IP2_ready()) {
+            Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
+            msgShake.send(Udp);
+            Udp.endPacket();
+        }
+        msgShake.empty();
+
+        msgYpr.add(imu_orientation.euler.azimuth);
+        msgYpr.add(imu_orientation.euler.tilt);
+        msgYpr.add(imu_orientation.euler.roll);
+        if (puara.IP1_ready()) {
+            Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
+            msgYpr.send(Udp);
+            Udp.endPacket();
+        }
+        if (puara.IP2_ready()) {
+            Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
+            msgYpr.send(Udp);
+            Udp.endPacket();
+        }
+        msgYpr.empty();
     }
 
-    if (M5.BtnA.wasPressed()) {
-        if (puara.IP1_ready()) { // set namespace and send OSC message for address 1
-            OSCMessage msg1(("/" + puara.dmi_name() + "/button").c_str()); 
-            msg1.add(1);
+    if (M5.BtnA.wasChangePressed()) {
+        if (M5.BtnA.wasPressed()) {
+            msgButton.add(1);
+        } else if (M5.BtnA.wasReleased()) {
+            msgButton.add(0);
+        }
+        if (puara.IP1_ready()) {
             Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
-            msg1.send(Udp);
+            msgButton.send(Udp);
             Udp.endPacket();
-            msg1.empty();
-            //std::cout << "Message send to " << puara.IP1() << std::endl;
         }
-        if (puara.IP2_ready()) { // set namespace and send OSC message for address 2
-            OSCMessage msg2(("/" + puara.dmi_name() + "/button").c_str()); 
-            msg2.add(1);
+        if (puara.IP2_ready()) {
             Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
-            msg2.send(Udp);
+            msgButton.send(Udp);
             Udp.endPacket();
-            msg2.empty();
-            //std::cout << "Message send to " << puara.IP2() << std::endl;
         }
-    }
-
-    if (M5.BtnA.wasReleased()) {
-        if (puara.IP1_ready()) { // set namespace and send OSC message for address 1
-            OSCMessage msg1(("/" + puara.dmi_name() + "/button").c_str()); 
-            msg1.add(0);
-            Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
-            msg1.send(Udp);
-            Udp.endPacket();
-            msg1.empty();
-            //std::cout << "Message send to " << puara.IP1() << std::endl;
-        }
-        if (puara.IP2_ready()) { // set namespace and send OSC message for address 2
-            OSCMessage msg2(("/" + puara.dmi_name() + "/button").c_str()); 
-            msg2.add(0);
-            Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
-            msg2.send(Udp);
-            Udp.endPacket();
-            msg2.empty();
-            //std::cout << "Message send to " << puara.IP2() << std::endl;
-        }
+        msgButton.empty();
     }
 
     // Show LCD instructions
