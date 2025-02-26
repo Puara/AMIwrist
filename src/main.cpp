@@ -240,6 +240,7 @@ void loop() {
     }
     if (discretizer.time.isNew(button.pressTime)) {
         oscBundle.add(OSCnamespace.time.c_str()).add(button.pressTime);
+    }
 
     if (puara.IP1_ready()) {
         Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
