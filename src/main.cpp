@@ -14,6 +14,7 @@
 #include <iostream>
 #include <M5Unified.h>
 #include <puara/gestures.h>
+#include <puara/utils.h>
 
 Puara puara;
 puara_gestures::Jab3D jab;
@@ -21,6 +22,24 @@ puara_gestures::Shake3D shake;
 //disable_orientation IMU_Orientation imu_orientation;
 int m5button = 0;
 puara_gestures::Button button(&m5button);
+
+struct Discretizers {
+    struct Jab {
+        puara_gestures::utils::Discretizer<double> x;
+        puara_gestures::utils::Discretizer<double> y;
+        puara_gestures::utils::Discretizer<double> z;
+    } jab;
+    struct Shake {
+        puara_gestures::utils::Discretizer<double> x;
+        puara_gestures::utils::Discretizer<double> y;
+        puara_gestures::utils::Discretizer<double> z;
+    } shake;
+    puara_gestures::utils::Discretizer<unsigned int> count;
+    puara_gestures::utils::Discretizer<unsigned int> tap;
+    puara_gestures::utils::Discretizer<unsigned int> dtap;
+    puara_gestures::utils::Discretizer<unsigned int> ttap;
+    puara_gestures::utils::Discretizer<unsigned int> time;
+} discretizer;
 
 byte led_pin = 10;
 bool lcd_on = false;
@@ -60,6 +79,7 @@ struct OSCNamespace {
     std::string ttap;
     std::string time;
 } OSCnamespace;
+
 
 ///////////
 // Extra //
@@ -173,14 +193,22 @@ void loop() {
             .add(data.gyro.x)
             .add(data.gyro.y)
             .add(data.gyro.z);
-        oscBundle.add(OSCnamespace.jab.c_str())
-            .add(jab.x.current_value())
-            .add(jab.y.current_value())
-            .add(jab.z.current_value());
-        oscBundle.add(OSCnamespace.shake.c_str())
-            .add(shake.x.current_value())
-            .add(shake.y.current_value())
-            .add(shake.z.current_value());
+        if (discretizer.jab.x.isNew(jab.x.current_value()) ||
+            discretizer.jab.x.isNew(jab.x.current_value()) ||
+            discretizer.jab.x.isNew(jab.x.current_value())) {
+                oscBundle.add(OSCnamespace.jab.c_str())
+                         .add(jab.x.current_value())
+                         .add(jab.y.current_value())
+                         .add(jab.z.current_value());
+        }
+        if (discretizer.shake.x.isNew(shake.x.current_value()) ||
+            discretizer.shake.x.isNew(shake.x.current_value()) ||
+            discretizer.shake.x.isNew(shake.x.current_value())) {
+                oscBundle.add(OSCnamespace.jab.c_str())
+                         .add(shake.x.current_value())
+                         .add(shake.y.current_value())
+                         .add(shake.z.current_value());
+        }
         
         //disable_orientation oscBundle.add(OSCnamespace.ypr.c_str())
         //disable_orientation     .add(imu_orientation.euler.azimuth)
@@ -198,11 +226,20 @@ void loop() {
         } 
     }
 
-    oscBundle.add(OSCnamespace.count.c_str()).add(button.count);
-    oscBundle.add(OSCnamespace.tap.c_str()).add(button.tap);
-    oscBundle.add(OSCnamespace.dtap.c_str()).add(button.doubleTap);
-    oscBundle.add(OSCnamespace.ttap.c_str()).add(button.tripleTap);
-    oscBundle.add(OSCnamespace.time.c_str()).add(button.pressTime);
+    if (discretizer.count.isNew(button.count)) {
+        oscBundle.add(OSCnamespace.count.c_str()).add(button.count);
+    }
+    if (discretizer.tap.isNew(button.tap)) {
+        oscBundle.add(OSCnamespace.tap.c_str()).add(button.tap);
+    }
+    if (discretizer.dtap.isNew(button.doubleTap)) {
+        oscBundle.add(OSCnamespace.dtap.c_str()).add(button.doubleTap);
+    }
+    if (discretizer.ttap.isNew(button.tripleTap)) {
+        oscBundle.add(OSCnamespace.ttap.c_str()).add(button.tripleTap);
+    }
+    if (discretizer.time.isNew(button.pressTime)) {
+        oscBundle.add(OSCnamespace.time.c_str()).add(button.pressTime);
 
     if (puara.IP1_ready()) {
         Udp.beginPacket(puara.IP1().c_str(), puara.PORT1());
