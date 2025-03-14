@@ -3,6 +3,14 @@
         {
             "name": "lcdDelay",
             "value": 3000
+        },
+        {
+            "name": "jabThreshold",
+            "value": 8
+        },
+        {
+            "name": "shakeThreshold",
+            "value": 1.2
         }
     ]
 }

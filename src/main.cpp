@@ -119,6 +119,9 @@ void setup() {
 
     puara.start();
 
+    jab.threshold(puara.getVarNumber("jabThreshold"));
+    shake.threshold(puara.getVarNumber("shakeThreshold"));
+
     std::cout << "\n"
     << "AMIwrist module - Puara framework\n"
     << "Edu Meneses\n"
@@ -133,11 +136,6 @@ void setup() {
     new (&OSCnamespace) OSCNamespace(("/" + puara.dmi_name()).c_str());
 
     M5.Lcd.printf(puara.dmi_name().c_str());
-
-    std::cout << "\n" 
-    << "Custom AMIWrist settings (data/settings.json):\n" 
-    << "lcdDelay: "   << puara.getVarNumber("lcdDelay")  << "\n"
-    << std::endl;
 
     // Start the UDP instances 
     Udp.begin(puara.LocalPORT());
@@ -204,7 +202,7 @@ void loop() {
         if (discretizer.shake.x.isNew(shake.x.current_value()) ||
             discretizer.shake.x.isNew(shake.x.current_value()) ||
             discretizer.shake.x.isNew(shake.x.current_value())) {
-                oscBundle.add(OSCnamespace.jab.c_str())
+                oscBundle.add(OSCnamespace.shake.c_str())
                          .add(shake.x.current_value())
                          .add(shake.y.current_value())
                          .add(shake.z.current_value());
@@ -247,12 +245,13 @@ void loop() {
         oscBundle.send(Udp);
         Udp.endPacket();
     }
-    if (puara.IP2_ready()) {
-        Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
-        oscBundle.send(Udp);
-        Udp.endPacket();
-    }
+    // if (puara.IP2_ready()) {
+    //     Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
+    //     oscBundle.send(Udp);
+    //     Udp.endPacket();
+    // }
     oscBundle.empty();
+
 
     // Show LCD instructions
     if (M5.BtnB.wasPressed()) {
@@ -302,6 +301,8 @@ void loop() {
         lcd_on = false;
     }
 
-    // run at 100 Hz
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    //Serial.println( esp_get_free_heap_size() );
+
+    // run at 20 Hz since the ESP32-Pico-D4 is not very powerful
+    vTaskDelay(50 / portTICK_PERIOD_MS);
 }
