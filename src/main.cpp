@@ -19,9 +19,16 @@
 Puara puara;
 puara_gestures::Jab3D jab;
 puara_gestures::Shake3D shake;
-//disable_orientation IMU_Orientation imu_orientation;
+puara_gestures::Tilt_Roll tilt_roll;
+IMU_Orientation imu_orientation;
 int m5button = 0;
 puara_gestures::Button button(&m5button);
+
+// struct Simple_orientation {
+//     double roll;
+//     double tilt;
+//     double magnitude;
+// } simple_orientation;
 
 struct Discretizers {
     struct Jab {
@@ -59,6 +66,8 @@ struct OSCNamespace {
         jab(prefix + "/jab"),
         shake(prefix + "/shake"),
         ypr(prefix + "/ypr"),
+        roll(prefix + "/roll"),
+        tilt(prefix + "/tilt"),
         button(prefix + "/button"),
         count(prefix + "/count"),
         tap(prefix + "/tap"),
@@ -72,6 +81,8 @@ struct OSCNamespace {
     std::string jab;
     std::string shake;
     std::string ypr;
+    std::string roll;
+    std::string tilt;
     std::string button;
     std::string count;
     std::string tap;
@@ -179,9 +190,18 @@ void loop() {
         jab.update(data.accel.x, data.accel.y, data.accel.z);
         shake.update(data.accel.x, data.accel.y, data.accel.z);
 
-        //disable_orientation imu_orientation.setAccelerometerValues(data.accel.x, data.accel.y, data.accel.z);
-        //disable_orientation imu_orientation.setGyroscopeDegreeValues(data.gyro.x, data.gyro.y, data.gyro.z, 10.);
-        //disable_orientation imu_orientation.update();
+        tilt_roll.update(data.accel.z, data.accel.y, data.accel.z);
+
+        // // calculate polar representation of accelerometer data
+        // simple_orientation.roll = atan2(data.accel.z, data.accel.y);
+        // simple_orientation.magnitude = sqrt(pow(data.accel.z, 2) + pow(data.accel.y, 2));
+        // simple_orientation.tilt = atan2(data.accel.x, simple_orientation.magnitude);
+        // simple_orientation.magnitude = sqrt(pow(data.accel.x, 2) + pow(simple_orientation.magnitude, 2));
+        // simple_orientation.magnitude *= 0.00390625;
+
+        imu_orientation.setAccelerometerValues(data.accel.x, data.accel.y, data.accel.z);
+        imu_orientation.setGyroscopeDegreeValues(data.gyro.x, data.gyro.y, data.gyro.z, 10.);
+        imu_orientation.update();
 
         oscBundle.add(OSCnamespace.accl.c_str())
             .add(data.accel.x)
@@ -208,10 +228,13 @@ void loop() {
                          .add(shake.z.current_value());
         }
         
-        //disable_orientation oscBundle.add(OSCnamespace.ypr.c_str())
-        //disable_orientation     .add(imu_orientation.euler.azimuth)
-        //disable_orientation     .add(imu_orientation.euler.tilt)
-        //disable_orientation     .add(imu_orientation.euler.roll);
+        oscBundle.add(OSCnamespace.ypr.c_str())
+            .add(imu_orientation.euler.azimuth)
+            .add(imu_orientation.euler.tilt)
+            .add(imu_orientation.euler.roll);
+
+        oscBundle.add(OSCnamespace.roll.c_str()).add(tilt_roll.current_roll_value());
+        oscBundle.add(OSCnamespace.tilt.c_str()).add(tilt_roll.current_tilt_value());
     }
 
     if (M5.BtnA.wasChangePressed()) {
@@ -245,11 +268,11 @@ void loop() {
         oscBundle.send(Udp);
         Udp.endPacket();
     }
-    // if (puara.IP2_ready()) {
-    //     Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
-    //     oscBundle.send(Udp);
-    //     Udp.endPacket();
-    // }
+    if (puara.IP2_ready()) {
+        Udp.beginPacket(puara.IP2().c_str(), puara.PORT2());
+        oscBundle.send(Udp);
+        Udp.endPacket();
+    }
     oscBundle.empty();
 
 
@@ -266,17 +289,17 @@ void loop() {
                       "  turn off");
     }
 
-    // Check if setup mode has been called
-    if (M5.BtnB.pressedFor(6000)) {
-        printf("\nLong button B press, entering setup mode\n\n");
-        M5.Lcd.fillScreen(BLACK); lcd_on = true;
-        M5.Lcd.setCursor(0,0);
-        M5.Lcd.setTextSize(2);
-        M5.Lcd.printf("Entering\nsetup\nmode...");
-        puara.set_persistentAP(true);
-        puara.write_config_json();
-        PuaraAPI::Device{}.reboot_with_delay();
-    }
+    // // Check if setup mode has been called
+    // if (M5.BtnB.pressedFor(6000)) {
+    //     printf("\nLong button B press, entering setup mode\n\n");
+    //     M5.Lcd.fillScreen(BLACK); lcd_on = true;
+    //     M5.Lcd.setCursor(0,0);
+    //     M5.Lcd.setTextSize(2);
+    //     M5.Lcd.printf("Entering\nsetup\nmode...");
+    //     puara.set_persistentAP(true);
+    //     puara.write_config_json();
+    //     PuaraAPI::Device{}.reboot_with_delay();
+    // }
 
     // LCD info
     if (M5.BtnB.wasReleased()) {
@@ -303,6 +326,6 @@ void loop() {
 
     //Serial.println( esp_get_free_heap_size() );
 
-    // run at 20 Hz since the ESP32-Pico-D4 is not very powerful
-    vTaskDelay(50 / portTICK_PERIOD_MS);
+    // run at 12.5 Hz since the ESP32-Pico-D4 is not very powerful
+    vTaskDelay(80 / portTICK_PERIOD_MS);
 }
