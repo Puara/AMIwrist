@@ -24,12 +24,6 @@ IMU_Orientation imu_orientation;
 int m5button = 0;
 puara_gestures::Button button(&m5button);
 
-// struct Simple_orientation {
-//     double roll;
-//     double tilt;
-//     double magnitude;
-// } simple_orientation;
-
 struct Discretizers {
     struct Jab {
         puara_gestures::utils::Discretizer<double> x;
@@ -191,13 +185,6 @@ void loop() {
         shake.update(data.accel.x, data.accel.y, data.accel.z);
 
         tilt_roll.update(data.accel.z, data.accel.y, data.accel.z);
-
-        // // calculate polar representation of accelerometer data
-        // simple_orientation.roll = atan2(data.accel.z, data.accel.y);
-        // simple_orientation.magnitude = sqrt(pow(data.accel.z, 2) + pow(data.accel.y, 2));
-        // simple_orientation.tilt = atan2(data.accel.x, simple_orientation.magnitude);
-        // simple_orientation.magnitude = sqrt(pow(data.accel.x, 2) + pow(simple_orientation.magnitude, 2));
-        // simple_orientation.magnitude *= 0.00390625;
 
         imu_orientation.setAccelerometerValues(data.accel.x, data.accel.y, data.accel.z);
         imu_orientation.setGyroscopeDegreeValues(data.gyro.x, data.gyro.y, data.gyro.z, 10.);
